@@ -28,6 +28,7 @@ init_sshd() {
             } \
         }' > "${ssh_dir}/environment"
 
+    sudo mkdir /run/sshd
     sudo gen_ssh_keys "rsa" "${SSHD_HOST_KEYS_DIR}"
 }
 

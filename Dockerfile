@@ -1,6 +1,6 @@
 ARG BASE_IMAGE_TAG
 
-FROM wodby/base-ruby:${BASE_IMAGE_TAG}
+FROM soregums/base-ruby:${BASE_IMAGE_TAG}
 
 ARG RUBY_DEV
 
@@ -29,64 +29,86 @@ RUN set -xe; \
     existing_user=$(getent passwd "${WODBY_USER_ID}" | cut -d: -f1); \
     if [[ -n "${existing_user}" ]]; then deluser "${existing_user}"; fi; \
     \
-	addgroup -g "${WODBY_GROUP_ID}" -S wodby; \
-	adduser -u "${WODBY_USER_ID}" -D -S -s /bin/bash -G wodby wodby; \
+	addgroup --gid "${WODBY_GROUP_ID}" --system wodby; \
+	adduser --uid "${WODBY_USER_ID}" --disabled-password --system --shell /bin/bash --gid "${WODBY_GROUP_ID}" wodby; \
 	sed -i '/^wodby/s/!/*/' /etc/shadow; \
     \
-    # @todo remove, and upgrade imagemagick to 7.x once rmagick starts support it
-    # https://github.com/rmagick/rmagick/issues/256
-    imagemagick_ver="6.9.6.8-r1"; \
-    echo 'http://dl-cdn.alpinelinux.org/alpine/v3.5/main' >> /etc/apk/repositories; \
-    \
-    apk add --update --no-cache -t .wodby-ruby-run-deps \
-        freetype=2.9.1-r2 \
+    apt-get update; \
+    # slim is too slim, make some diredctories for postgresql-client
+    # https://github.com/dalibo/temboard/issues/211#issuecomment-342205157
+    mkdir -p /usr/share/man/man1; \
+    mkdir -p /usr/share/man/man7; \
+    apt-get install -y --no-install-recommends \
+        postgresql-client; \
+	apt-get install -y --no-install-recommends \
+        libfreetype6 \
         git \
-        gmp=6.1.2-r1 \
-        icu-libs=62.1-r0 \
-        "imagemagick=${imagemagick_ver}" \
-        less \
-        libbz2=1.0.6-r6 \
-        libjpeg-turbo-utils \
-        libjpeg-turbo=1.5.3-r4 \
-        libldap=2.4.47-r2 \
-        libmemcached-libs=1.0.18-r3 \
-        libpng=1.6.35-r0 \
-        librdkafka=0.11.6-r1 \
-        libxslt=1.1.32-r0 \
+        curl \
+        wget \
+        libgmp10 \
+        libicu57 \
+        imagemagick \
+        libjpeg62-turbo \
+        libjpeg-turbo-progs \
+        libldap-2.4-2 \
+        libmemcached11 \
+        libpng16-16 \
+        librdkafka1 \
+        libxslt1.1 \
         make \
-        mariadb-client=10.3.12-r2 \
+        mariadb-client-10.1 \
         nano \
-        openssh \
-        openssh-client \
-        patch \
-        postgresql-client=11.1-r0 \
-        rabbitmq-c=0.8.0-r5 \
-        rsync \
-        sqlite-libs=3.26.0-r3 \
-        su-exec \
+        openssh-server \
+        librabbitmq4 \
+        sqlite3 \
         sudo \
         tig \
         tmux \
-        tzdata \
-        yaml=0.2.1-r0; \
+        libyaml-0-2; \
     \
-    if [[ -n "${RUBY_DEV}" ]]; then \
-        apk add --update --no-cache -t .wodby-ruby-dev-deps \
-            build-base \
+    if [ -n "${RUBY_DEV}" ]; then \
+        apt-get install -y --no-install-recommends \
+            gnupg \
+            build-essential \
             libffi-dev \
-            linux-headers \
-            "imagemagick-dev=${imagemagick_ver}" \
-            postgresql-dev \
-            sqlite-dev \
-            mariadb-dev \
-            nodejs; \
+            linux-headers-amd64 \
+            libmagickwand-dev \
+            postgresql-server-dev-all \
+            libsqlite3-dev \
+            libmariadbd-dev; \
+        # nodejs 10.x, npm, yarn
+        curl -sL https://deb.nodesource.com/setup_10.x | bash -; \
+        curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -; \
+        apt-get update; \
+        apt-get install -y --no-install-recommends \
+            nodejs \
+            yarn; \
+        # su-exec
+        git clone https://github.com/ncopa/su-exec.git; \
+        cd su-exec; \
+        make; \
+        mv su-exec /sbin/su-exec; \
+        cd ..; \
+        rm -Rf su-exec; \
+    else \
+        # su-exec
+        apt-get install -y --no-install-recommends \
+            make \
+            gcc; \
+        git clone https://github.com/ncopa/su-exec.git; \
+        cd su-exec; \
+        make; \
+        mv su-exec /sbin/su-exec; \
+        cd ..; \
+        rm -Rf su-exec; \
+        apt-get purge -y \
+            make \
+            gcc; \
     fi; \
-    \
     # Install redis-cli.
-    apk add --update --no-cache redis; \
+    apt-get install -y --no-install-recommends redis-tools; \
     mv /usr/bin/redis-cli /tmp/; \
-    apk del --purge redis; \
-    deluser redis; \
+    apt purge -y redis-tools; \
     mv /tmp/redis-cli /usr/bin; \
     \
     install -o wodby -g wodby -d \
@@ -100,7 +122,6 @@ RUN set -xe; \
         echo 'export PS1="\u@${WODBY_APP_NAME:-ruby}.${WODBY_ENVIRONMENT_NAME:-container}:\w $ "'; \
         echo "export PATH=${PATH}"; \
     } | tee /home/wodby/.shrc; \
-    \
     cp /home/wodby/.shrc /home/wodby/.bashrc; \
     cp /home/wodby/.shrc /home/wodby/.bash_profile; \
     \
@@ -108,7 +129,7 @@ RUN set -xe; \
     { \
         echo 'Defaults env_keep += "APP_ROOT FILES_DIR"' ; \
         \
-        if [[ -n "${RUBY_DEV}" ]]; then \
+        if [ -n "${RUBY_DEV}" ]; then \
             echo 'wodby ALL=(root) NOPASSWD:SETENV:ALL'; \
         else \
             echo -n 'wodby ALL=(root) NOPASSWD:SETENV: ' ; \
@@ -120,6 +141,7 @@ RUN set -xe; \
     } | tee /etc/sudoers.d/wodby; \
     \
     # Configure ldap
+    mkdir /etc/openldap; \
     echo "TLS_CACERTDIR /etc/ssl/certs/" >> /etc/openldap/ldap.conf; \
     \
     touch \
@@ -135,10 +157,13 @@ RUN set -xe; \
         /etc/init.d/unicorn \
         /home/wodby/.*; \
     \
-    rm -rf \
-        /etc/crontabs/root \
-        /tmp/* \
-        /var/cache/apk/*
+    # gotpl
+    gotpl_url="https://github.com/wodby/gotpl/releases/download/0.1.5/gotpl-linux-amd64-0.1.5.tar.gz"; \
+    wget -qO- "${gotpl_url}" | tar xz -C /usr/local/bin; \
+    \
+    apt-get autoremove -y; \
+    apt-get autoclean; \
+    rm -rf /var/lib/apt/lists/*;
 
 USER wodby
 

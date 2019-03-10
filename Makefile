@@ -3,7 +3,7 @@
 RUBY_VER ?= 2.6.1
 RUBY_VER_MINOR := $(shell v='$(RUBY_VER)'; echo "$${v%.*}")
 
-REPO = wodby/ruby
+REPO = soregums/ruby
 NAME = ruby-$(RUBY_VER_MINOR)
 
 WODBY_USER_ID ?= 1000
@@ -32,6 +32,14 @@ endif
 .PHONY: build test push shell run start stop logs clean release
 
 default: build
+
+# GIT_USER_EMAIL="soregums.chat@gmail.com" \
+  GIT_USER_NAME="Nicholas Orr" \
+  RUBY_DEV=1 \
+  WODBY_GROUP_ID=985 \
+  RUBY_VER=2.6.1 \
+  TAGS=2.6-dev \
+  make build
 
 build:
 	docker build -t $(REPO):$(TAG) \

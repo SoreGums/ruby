@@ -33,10 +33,3 @@ services:
     depends_on:
       - sshd
 
-  crond:
-    image: $IMAGE
-    command: sudo -E crond -f -d 0
-    volumes:
-      - ./crontab:/etc/crontabs/wodby
-    depends_on:
-      - sshd

@@ -2,7 +2,7 @@
 
 set -e
 
-if [[ -n "${DEBUG}" ]]; then
+if [ -n "${DEBUG}" ]; then
     set -x
 fi
 
@@ -12,7 +12,7 @@ tmp_dir="/tmp/source"
 get_archive "${source}" "${tmp_dir}" "zip tgz tar.gz tar"
 
 # TODO: allow top level dir import only for wodby archives.
-if [[ -f "${tmp_dir}/.wodby" || (-d "${tmp_dir}/private" && -d "${tmp_dir}/public") ]]; then
+if [[ -f "${tmp_dir}/.wodby" || (-d "${tmp_dir}/private" && -d "${tmp_dir}/public") ]; then
     echo "Wodby backup archive detected. Importing to top directory"
     files_sync "${tmp_dir}/" "${FILES_DIR}"
 else
