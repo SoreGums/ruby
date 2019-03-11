@@ -47,7 +47,8 @@ RUN set -xe; \
         wget \
         libgmp10 \
         libicu57 \
-        imagemagick \
+        # Too big, removed
+        #imagemagick \
         libjpeg62-turbo \
         libjpeg-turbo-progs \
         libldap-2.4-2 \
@@ -72,8 +73,9 @@ RUN set -xe; \
             build-essential \
             libffi-dev \
             linux-headers-amd64 \
-            libmagickwand-dev \
-            postgresql-server-dev-all \
+            # Too big, removed
+            #libmagickwand-dev \
+            libpq-dev \
             libsqlite3-dev \
             libmariadbd-dev; \
         # nodejs 10.x, npm, yarn
