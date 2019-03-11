@@ -38,7 +38,6 @@ default: build
   RUBY_DEV=1 \
   WODBY_GROUP_ID=985 \
   RUBY_VER=2.6.1 \
-  TAGS=2.6-dev \
   make build
 
 build:
