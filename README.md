@@ -1,15 +1,13 @@
 # Ruby Docker Container Images
 
-[![Build Status](https://travis-ci.com/wodby/ruby.svg?branch=master)](https://travis-ci.com/wodby/ruby)
-[![Docker Pulls](https://img.shields.io/docker/pulls/wodby/ruby.svg)](https://hub.docker.com/r/wodby/ruby)
-[![Docker Stars](https://img.shields.io/docker/stars/wodby/ruby.svg)](https://hub.docker.com/r/wodby/ruby)
-[![Docker Layers](https://images.microbadger.com/badges/image/wodby/ruby.svg)](https://microbadger.com/images/wodby/ruby)
+[![Docker Pulls](https://img.shields.io/docker/pulls/soregums/ruby.svg)](https://hub.docker.com/r/soregums/ruby)
+[![Docker Stars](https://img.shields.io/docker/stars/soregums/ruby.svg)](https://hub.docker.com/r/soregums/ruby)
+[![Docker Layers](https://images.microbadger.com/badges/image/soregums/ruby.svg)](https://microbadger.com/images/soregums/ruby)
 
 ## Table of Contents
 
 * [Docker Images](#docker-images)
     * [`-dev`](#-dev)
-    * [`-dev-macos`](#-dev-macos)
 * [Environment Variables](#environment-variables)
 * [Build arguments](#build-arguments)
 * [Libraries](#libraries)
@@ -26,27 +24,18 @@
 
 ## Docker Images
 
-❗For better reliability we release images with stability tags (`wodby/ruby:2.5-X.X.X`) which correspond to [git tags](https://github.com/wodby/ruby/releases). We strongly recommend using images only with stability tags.
-
 About images:
 
-* All images are based on Alpine Linux
-* [Travis CI builds](https://travis-ci.com/wodby/ruby) 
-* [Docker Hub](https://hub.docker.com/r/wodby/ruby) 
+* All images are based on Debian Stretch Linux  
+* [Docker Hub](https://hub.docker.com/r/soregums/ruby)  
+* Forked from [wodby/ruby](https://github.com/wodby/ruby)  - they have smaller Alpine images
+* This exists as muslc doesn't work with libv8 gem, which is needed for webpack if using mini_racer for server side rending of react_on_rails
 
 Supported tags and respective `Dockerfile` links:
 
-* `2.6`, `2`, `latest` [_(Dockerfile)_]
-* `2.5` [_(Dockerfile)_]
-* `2.4` [_(Dockerfile)_]
-* `2.6-dev`, `2-dev` [_(Dockerfile)_]
-* `2.5-dev` [_(Dockerfile)_]
-* `2.4-dev` [_(Dockerfile)_]
-* `2.6-dev-macos`, `2-dev-macos` [_(Dockerfile)_]
-* `2.5-dev-macos` [_(Dockerfile)_]
-* `2.4-dev-macos` [_(Dockerfile)_]
+* `2.6` [_(Dockerfile)_]
 
-[_(Dockerfile)_]: https://github.com/wodby/ruby/tree/master/Dockerfile
+[_(Dockerfile)_]: https://github.com/soregums/ruby/tree/master/Dockerfile
 
 ### `-dev` 
 
@@ -55,10 +44,7 @@ Images with `-dev` tag have the following additions:
 * `sudo` allowed for all commands for `wodby` user
 * dev package added for additional native extensions compilation 
 * `nodejs` package added (required by rails)
-
-### `-dev-macos`
-
-Same as `-dev` but the default user/group `wodby` has uid/gid `501`/`20`  to match the macOS default user/group ids.
+* `yarn` package added (helps with webpack)
 
 ## Environment Variables
 
@@ -110,7 +96,7 @@ All essential linux libraries are freezed and updates will be reflected in [chan
 
 ## Changelog
 
-Changes per stability tag reflected in git tags description under [releases](https://github.com/wodby/ruby/releases). 
+Changes per stability tag reflected in git tags description under [releases](https://github.com/soregums/ruby/releases). 
 
 ## Gems
 
@@ -128,12 +114,7 @@ To use Unicorn as your HTTP server override the default container command to `/e
 
 ## Crond
 
-You can run Crond with this image changing the command to `sudo -E crond -f -d 0` and mounting a crontab file to `./crontab:/etc/crontabs/wodby`. Example crontab file contents:
-
-```
-# min	hour	day	month	weekday	command
-*/1	*	*	*	*	echo "test" > /mnt/files/cron
-```
+Removed for the moment as Debian does it different
 
 ## SSHD
 
